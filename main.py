@@ -1,34 +1,48 @@
 import discord
 import os
-import time
-from discord.ext import commands
-from keep_alive import keep_alive
+from asyncio import sleep
 
-bot = commands.Bot(command_prefix="-")
+intents = discord.Intents.default()
+intents.message_content = True
 
-song = open('never.txt')
+client = discord.Client(intents=intents)
 
 
-@bot.event
+ffmpeg_executable_path = "path/to/ffmpeg"
+
+@client.event
 async def on_ready():
-    print("done")
+    print(f'We have logged in as {client.user}')
+
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+    
+        
+    if message.content.startswith('$VC'):
+        Voicechannel = message.author.voice.channel
+        vc = await Voicechannel.connect()
+        src = discord.FFmpegPCMAudio(executable=ffmpeg_executable_path, source="./GOSPEL.mp3")
+        vc.play(src)
+        while vc.is_playing():
+            await sleep(1)
+        await vc.disconnect()
+        
+        
+        
 
 
-@bot.command
-@bot.event
-async def on_message(ctx):
-    role = discord.utils.get(ctx.guild.roles, name="rickroller")
-    if role in ctx.author.roles and ctx.content.startswith('-r'):
-        song = open('never.txt')
-        for line in song:
-            await ctx.channel.send(line)
-            time.sleep(1)
-        song.close()
-    elif ctx.content.startswith('-r'):
-        await ctx.channel.send("you don't have the 'rickroller' role")
-    else:
-        ctx.channel.send('there was an error')
+    if message.content.startswith('$DoTheThing'):
+        with open("Never.txt", 'r') as file:
+        # Read the lines of the file
+            file_lines = file.readlines()
+ 
+            # Print each line
+        print("File Content:")
+        for line in file_lines:
+            await sleep(1)
+            await message.channel.send(line.strip())
+        
 
-
-keep_alive()
-bot.run(os.getenv('token'))
+client.run('discord/app/token/here')
